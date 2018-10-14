@@ -142,6 +142,10 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			},
 		})
 		if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
+			resources := core.ResourceRequirements{}
+			if mysql.Spec.Monitor.Resources != nil {
+				resources = *mysql.Spec.Monitor.Resources
+			}
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 				Name: "exporter",
 				Command: []string{
@@ -163,6 +167,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 						ContainerPort: mysql.Spec.Monitor.Prometheus.Port,
 					},
 				},
+				Resources: resources,
 			})
 		}
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
